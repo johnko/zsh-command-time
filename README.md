@@ -55,6 +55,7 @@ You can customize view of the plugin by redefinition of function
 `zsh_command_time`. There is an example of custom definition `zsh_command_time`:
 ```bash
 zsh_command_time() {
+    local hours min sec timer_show
     if [ -n "$ZSH_COMMAND_TIME" ]; then
         hours=$(($ZSH_COMMAND_TIME/3600))
         min=$(($ZSH_COMMAND_TIME/60))
