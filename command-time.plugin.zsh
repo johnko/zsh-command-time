@@ -3,7 +3,7 @@ _command_time_preexec() {
   if [ -n "$ZSH_COMMAND_TIME_EXCLUDE" ]; then
     cmd="$1"
     for exc ($ZSH_COMMAND_TIME_EXCLUDE) do;
-      if [ "$(echo $cmd | grep -c "$exc")" -gt 0 ]; then
+      if grep -qF "$exc" <<< "$cmd"; then
         # echo "command excluded: $exc"
         return
       fi
