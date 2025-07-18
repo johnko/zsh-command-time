@@ -37,6 +37,9 @@ And add `command-time` to `plugins` in `.zshrc`.
 
 You can override defaults in `.zshrc`:
 ```bash
+# Use floating point numbers for time.
+typeset -F SECONDS
+
 # If command execution time above min. time, plugins will output time.
 ZSH_COMMAND_TIME_MIN_SECONDS=3
 
@@ -57,15 +60,19 @@ You can customize view of the plugin by redefinition of function
 zsh_command_time() {
     local hours min sec timer_show
     if [ -n "$ZSH_COMMAND_TIME" ]; then
-        hours=$(($ZSH_COMMAND_TIME/3600))
-        min=$(($ZSH_COMMAND_TIME/60))
-        sec=$(($ZSH_COMMAND_TIME%60))
-        if [ "$ZSH_COMMAND_TIME" -le 60 ]; then
-            timer_show="$fg[green]$ZSH_COMMAND_TIME s."
-        elif [ "$ZSH_COMMAND_TIME" -gt 60 ] && [ "$ZSH_COMMAND_TIME" -le 180 ]; then
+        hours=$(( ZSH_COMMAND_TIME / 3600 ))
+        min=$(( ZSH_COMMAND_TIME / 60 % 60 ))
+        if [[ "${(t)SECONDS}" == "float-special" ]]; then
+            # If SECONDS is a float, we limit the precision to 3 decimal places
+            typeset -F 3 sec
+        fi
+        sec=$(( ZSH_COMMAND_TIME % 60 ))
+        if [[ "$ZSH_COMMAND_TIME" -le 60 ]]; then
+            timer_show="$fg[green]$sec s."
+        elif [[ "$ZSH_COMMAND_TIME" -gt 60 ]] && [ "$ZSH_COMMAND_TIME" -le 180 ]; then
             timer_show="$fg[yellow]$min min. $sec s."
         else
-            if [ "$hours" -gt 0 ]; then
+            if [[ "$hours" -gt 0 ]]; then
                 min=$(($min%60))
                 timer_show="$fg[red]$hours h. $min min. $sec s."
             else

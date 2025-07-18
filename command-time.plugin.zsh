@@ -20,7 +20,7 @@ _command_time_precmd() {
   local timer_show
   if [ $_command_time_timer ]; then
     timer_show=$(($SECONDS - $_command_time_timer))
-    if [ -n "$TTY" ] && [ $timer_show -ge ${ZSH_COMMAND_TIME_MIN_SECONDS:-3} ]; then
+    if [ -n "$TTY" ] && [[ $timer_show -ge ${ZSH_COMMAND_TIME_MIN_SECONDS:-3} ]]; then
       export ZSH_COMMAND_TIME="$timer_show"
       if [ ! -z ${ZSH_COMMAND_TIME_MSG} ]; then
         zsh_command_time
@@ -31,9 +31,17 @@ _command_time_precmd() {
 }
 
 zsh_command_time() {
-  local timer_show
+  local hours min sec sec_fmt timer_show
   if [ -n "$ZSH_COMMAND_TIME" ]; then
-    timer_show=$(printf '%dh:%02dm:%02ds\n' $(($ZSH_COMMAND_TIME/3600)) $(($ZSH_COMMAND_TIME%3600/60)) $(($ZSH_COMMAND_TIME%60)))
+    hours=$(( ZSH_COMMAND_TIME / 3600 ))
+    min=$(( ZSH_COMMAND_TIME / 60 % 60 ))
+    sec=$(( ZSH_COMMAND_TIME % 60 ))
+    sec_fmt='%02d'
+    if [[ "${(t)SECONDS}" == "float-special" ]]; then
+      # If SECONDS is a float, we limit the precision to 2 decimal places
+      sec_fmt='%02.2f'
+    fi
+    timer_show=$(printf '%dh:%02dm:'"${sec_fmt}s\n" $hours $min $sec)
     print -P "%F{$ZSH_COMMAND_TIME_COLOR}$(printf "${ZSH_COMMAND_TIME_MSG}\n" "$timer_show")%f"
   fi
 }
