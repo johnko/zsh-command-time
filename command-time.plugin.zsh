@@ -37,7 +37,7 @@ zsh_command_time() {
     min=$(( ZSH_COMMAND_TIME / 60 % 60 ))
     sec=$(( ZSH_COMMAND_TIME % 60 ))
     sec_fmt='%02d'
-    if [[ "${(t)SECONDS}" == "float-special" ]]; then
+    if [[ "$ZSH_COMMAND_TIME" == *.* ]]; then
       # If SECONDS is a float, we limit the precision to 2 decimal places
       sec_fmt='%02.2f'
     fi

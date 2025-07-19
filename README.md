@@ -60,20 +60,21 @@ You can customize view of the plugin by redefinition of function
 zsh_command_time() {
     local hours min sec timer_show
     if [ -n "$ZSH_COMMAND_TIME" ]; then
-        hours=$(( ZSH_COMMAND_TIME / 3600 ))
-        min=$(( ZSH_COMMAND_TIME / 60 % 60 ))
-        if [[ "${(t)SECONDS}" == "float-special" ]]; then
+        # hours and minutes are calculated from the total seconds as integers
+        typeset -i hours=$(( ZSH_COMMAND_TIME / 3600))
+        typeset -i min=$(( ZSH_COMMAND_TIME / 60 % 60))
+        if [[ "$ZSH_COMMAND_TIME" == *.* ]]; then
             # If SECONDS is a float, we limit the precision to 3 decimal places
             typeset -F 3 sec
         fi
+        # secunds are calculated as float or integer automatically
         sec=$(( ZSH_COMMAND_TIME % 60 ))
-        if [[ "$ZSH_COMMAND_TIME" -le 60 ]]; then
+        if [[ "$min" == 0 ]]; then
             timer_show="$fg[green]$sec s."
-        elif [[ "$ZSH_COMMAND_TIME" -gt 60 ]] && [ "$ZSH_COMMAND_TIME" -le 180 ]; then
+        elif [[ 1 -le "$min" && "$min" -le 3 ]]; then
             timer_show="$fg[yellow]$min min. $sec s."
         else
-            if [[ "$hours" -gt 0 ]]; then
-                min=$(($min%60))
+            if [[ "$hours" != 0 ]]; then
                 timer_show="$fg[red]$hours h. $min min. $sec s."
             else
                 timer_show="$fg[red]$min min. $sec s."
