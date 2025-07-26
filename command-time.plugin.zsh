@@ -35,9 +35,9 @@ zsh_command_time() {
   local days hours min sec sec_fmt timer_show color
   if [ -n "$ZSH_COMMAND_TIME" ]; then
     # Round to integers
-    days=$(( ${ZSH_COMMAND_TIME%.*} / 86400 ))
-    hours=$(( ${ZSH_COMMAND_TIME%.*} / 3600 % 24 ))
-    min=$(( ${ZSH_COMMAND_TIME%.*} / 60 % 60 ))
+    typeset -i days=$(( ${ZSH_COMMAND_TIME} / 86400 ))
+    typeset -i hours=$(( ${ZSH_COMMAND_TIME} / 3600 % 24 ))
+    typeset -i min=$(( ${ZSH_COMMAND_TIME} / 60 % 60 ))
     sec=$(( ZSH_COMMAND_TIME % 60 ))
     sec_fmt=$(printf '%d' "$sec")
     color="$ZSH_COMMAND_TIME_COLOR"
