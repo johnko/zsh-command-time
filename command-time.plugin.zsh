@@ -13,6 +13,7 @@ _command_time_preexec() {
   _command_time_timer=${timer:-$SECONDS}
   ZSH_COMMAND_TIME_MSG=${ZSH_COMMAND_TIME_MSG-"Time: %s"}
   ZSH_COMMAND_TIME_COLOR=${ZSH_COMMAND_TIME_COLOR-"white"}
+  ZSH_COMMAND_TIME_NO_COLOR=${ZSH_COMMAND_TIME_NO_COLOR-""}
   export ZSH_COMMAND_TIME=""
 }
 
@@ -31,18 +32,41 @@ _command_time_precmd() {
 }
 
 zsh_command_time() {
-  local hours min sec sec_fmt timer_show
+  local days hours min sec sec_fmt timer_show color
   if [ -n "$ZSH_COMMAND_TIME" ]; then
-    hours=$(( ZSH_COMMAND_TIME / 3600 ))
-    min=$(( ZSH_COMMAND_TIME / 60 % 60 ))
+    # Round to integers
+    days=$(( ${ZSH_COMMAND_TIME%.*} / 86400 ))
+    hours=$(( ${ZSH_COMMAND_TIME%.*} / 3600 % 24 ))
+    min=$(( ${ZSH_COMMAND_TIME%.*} / 60 % 60 ))
     sec=$(( ZSH_COMMAND_TIME % 60 ))
-    sec_fmt='%02d'
+    sec_fmt=$(printf '%d' "$sec")
+    color="$ZSH_COMMAND_TIME_COLOR"
     if [[ "$ZSH_COMMAND_TIME" == *.* ]]; then
       # If SECONDS is a float, we limit the precision to 2 decimal places
-      sec_fmt='%02.2f'
+      sec_fmt=$(printf '%02.2f' "$sec")
     fi
-    timer_show=$(printf '%dh:%02dm:'"${sec_fmt}s\n" $hours $min $sec)
-    print -P "%F{$ZSH_COMMAND_TIME_COLOR}$(printf "${ZSH_COMMAND_TIME_MSG}\n" "$timer_show")%f"
+    if [[ "$min" == 0 ]]; then
+        color="green"
+        timer_show="${sec_fmt}s"
+    elif [[ 1 -le "$min" && "$min" -le 3 ]]; then
+        color="yellow"
+        timer_show="${min}m ${sec_fmt}s"
+    else
+        if [[ "$days" != 0 ]]; then
+            color="red"
+            timer_show="${days}d ${hours}h ${min}m ${sec_fmt}s"
+        elif [[ "$hours" != 0 ]]; then
+            color="red"
+            timer_show="${hours}h ${min}m ${sec_fmt}s"
+        else
+            color="red"
+            timer_show="${min}m ${sec_fmt}s"
+        fi
+    fi
+    if [ -n "$ZSH_COMMAND_TIME_NO_COLOR" ]; then
+      color="$ZSH_COMMAND_TIME_COLOR"
+    fi
+    print -P "%F{$ZSH_COMMAND_TIME_COLOR}$(printf "${ZSH_COMMAND_TIME_MSG}" "%F{$color}$timer_show")%f"
   fi
 }
 

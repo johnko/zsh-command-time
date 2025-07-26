@@ -2,6 +2,10 @@
 
 Plugin that output `time: xx` after long commands and export `ZSH_COMMAND_TIME` variable for usage in your scripts.
 
+Example output with `typeset -F SECONDS`:
+
+![screenshot](screen1.png)
+
 It similar builin feature [REPORTTIME](http://zsh.sourceforge.net/Doc/Release/Parameters.html), but it outputs only
 if user + system time >= `REPORTTIME` in config. For example:
 ```bash
@@ -43,11 +47,14 @@ typeset -F SECONDS
 # If command execution time above min. time, plugins will output time.
 ZSH_COMMAND_TIME_MIN_SECONDS=3
 
-# Message to display (set to "" for disable).
+# Message to display (set to "%s" for disable).
 ZSH_COMMAND_TIME_MSG="Execution time: %s sec"
 
 # Message color.
 ZSH_COMMAND_TIME_COLOR="cyan"
+
+# Don’t colorize the output based on the duration. Default colors: green < 1 min, yellow < 3 min, red >= 3 min.
+ZSH_COMMAND_TIME_NO_COLOR="1"
 
 # Exclude some commands
 ZSH_COMMAND_TIME_EXCLUDE=(vim mcedit)
@@ -87,7 +94,7 @@ zsh_command_time() {
 
 You can see result of this function on the following screenshot:
 
-![screenshot](screen.jpg)
+![screenshot](screen2.jpg)
 
 Variable `$ZSH_COMMAND_TIME` contains execution time in seconds. We calculate
 how many minutes and hours it was and print this information to terminal.
