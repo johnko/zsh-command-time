@@ -2,6 +2,10 @@
 
 Plugin that output `time: xx` after long commands and export `ZSH_COMMAND_TIME` variable for usage in your scripts.
 
+Example output with `typeset -F SECONDS`:
+
+![screenshot](screen1.png)
+
 It similar builin feature [REPORTTIME](http://zsh.sourceforge.net/Doc/Release/Parameters.html), but it outputs only
 if user + system time >= `REPORTTIME` in config. For example:
 ```bash
@@ -37,14 +41,20 @@ And add `command-time` to `plugins` in `.zshrc`.
 
 You can override defaults in `.zshrc`:
 ```bash
+# Use floating point numbers for time.
+typeset -F SECONDS
+
 # If command execution time above min. time, plugins will output time.
 ZSH_COMMAND_TIME_MIN_SECONDS=3
 
-# Message to display (set to "" for disable).
+# Message to display (set to "%s" for disable).
 ZSH_COMMAND_TIME_MSG="Execution time: %s sec"
 
 # Message color.
 ZSH_COMMAND_TIME_COLOR="cyan"
+
+# Don’t colorize the output based on the duration. Default colors: green < 1 min, yellow < 3 min, red >= 3 min.
+ZSH_COMMAND_TIME_NO_COLOR="1"
 
 # Exclude some commands
 ZSH_COMMAND_TIME_EXCLUDE=(vim mcedit)
@@ -55,17 +65,23 @@ You can customize view of the plugin by redefinition of function
 `zsh_command_time`. There is an example of custom definition `zsh_command_time`:
 ```bash
 zsh_command_time() {
+    local hours min sec timer_show
     if [ -n "$ZSH_COMMAND_TIME" ]; then
-        hours=$(($ZSH_COMMAND_TIME/3600))
-        min=$(($ZSH_COMMAND_TIME/60))
-        sec=$(($ZSH_COMMAND_TIME%60))
-        if [ "$ZSH_COMMAND_TIME" -le 60 ]; then
-            timer_show="$fg[green]$ZSH_COMMAND_TIME s."
-        elif [ "$ZSH_COMMAND_TIME" -gt 60 ] && [ "$ZSH_COMMAND_TIME" -le 180 ]; then
+        # hours and minutes are calculated from the total seconds as integers
+        typeset -i hours=$(( ZSH_COMMAND_TIME / 3600))
+        typeset -i min=$(( ZSH_COMMAND_TIME / 60 % 60))
+        if [[ "$ZSH_COMMAND_TIME" == *.* ]]; then
+            # If SECONDS is a float, we limit the precision to 3 decimal places
+            typeset -F 3 sec
+        fi
+        # secunds are calculated as float or integer automatically
+        sec=$(( ZSH_COMMAND_TIME % 60 ))
+        if [[ "$min" == 0 ]]; then
+            timer_show="$fg[green]$sec s."
+        elif [[ 1 -le "$min" && "$min" -le 3 ]]; then
             timer_show="$fg[yellow]$min min. $sec s."
         else
-            if [ "$hours" -gt 0 ]; then
-                min=$(($min%60))
+            if [[ "$hours" != 0 ]]; then
                 timer_show="$fg[red]$hours h. $min min. $sec s."
             else
                 timer_show="$fg[red]$min min. $sec s."
@@ -78,7 +94,7 @@ zsh_command_time() {
 
 You can see result of this function on the following screenshot:
 
-![screenshot](screen.jpg)
+![screenshot](screen2.jpg)
 
 Variable `$ZSH_COMMAND_TIME` contains execution time in seconds. We calculate
 how many minutes and hours it was and print this information to terminal.
